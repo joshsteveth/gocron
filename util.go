@@ -2,6 +2,7 @@ package cron
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -38,4 +39,19 @@ func CalculateTimeDiff(serverTime time.Time, loc *time.Location) (time.Duration,
 
 	return time.ParseDuration(fmt.Sprintf("%.0fs",
 		serverSec-localSec))
+}
+
+func getWeekday(d string) (time.Weekday, error) {
+	//time weekday format is title case
+	//so what we want is "Monday", not "monday" or "MONDAY"
+	d = strings.Title(strings.ToLower(d))
+
+	for i := 0; i < 7; i++ {
+		w := time.Weekday(i)
+		if d == w.String() {
+			return w, nil
+		}
+	}
+
+	return time.Sunday, ErrorInvalidStartingPoint
 }

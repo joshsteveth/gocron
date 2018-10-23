@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -178,6 +179,99 @@ func (d Daily) GetSleepDuration(t time.Time) (time.Duration, error) {
 	if t.After(timeThen) {
 		timeThen = timeThen.AddDate(0, 0, 1)
 	}
+
+	return timeThen.Sub(t), nil
+}
+
+//Weekly
+//this scheduler runs once every week
+type Weekly struct {
+	StartingPoint string
+	Weekday       time.Weekday
+	StartingTime  string
+	Location      *time.Location
+}
+
+//NewWeekly returns new Weekly object
+//start string format is "Monday@1504" (case insensitive)
+func NewWeekly(start string, loc *time.Location) (*Weekly, error) {
+	w := Weekly{StartingPoint: start, Location: loc}
+
+	if err := w.validate(); err != nil {
+		return nil, err
+	}
+
+	return &w, nil
+}
+
+func (w *Weekly) validate() error {
+	str := strings.Split(w.StartingPoint, "@")
+
+	if len(str) != 2 {
+		return ErrorInvalidStartingPoint
+	}
+
+	weekday, err := getWeekday(str[0])
+	if err != nil {
+		return err
+	}
+	w.Weekday = weekday
+
+	if _, err := time.Parse("1504", str[1]); err != nil {
+		return err
+	}
+	w.StartingTime = str[1]
+
+	if w.Location == nil {
+		return ErrorInvalidTimeLocation
+	}
+
+	return nil
+}
+
+func (w Weekly) GetInterval() time.Duration {
+	return time.Hour * 24 * 7
+}
+
+func (w Weekly) GetSleepDuration(t time.Time) (time.Duration, error) {
+	if err := w.validate(); err != nil {
+		return time.Second * 0, err
+	}
+
+	timeThen, err := time.Parse("20060102 -0700",
+		t.Format("20060102 -0700"))
+	if err != nil {
+		return time.Second * 0, err
+	}
+
+	dur, err := time.ParseDuration(fmt.Sprintf("%sh%sm",
+		w.StartingTime[:2], w.StartingTime[2:]))
+	if err != nil {
+		return time.Second * 0, err
+	}
+
+	timeDiff, err := CalculateTimeDiff(t, w.Location)
+	if err != nil {
+		return time.Second * 0, err
+	}
+
+	timeThen = timeThen.Add(dur).In(w.Location).Add(timeDiff)
+
+	//we need to add 1 day if timeThen is before our start time
+	if t.After(timeThen) {
+		timeThen = timeThen.AddDate(0, 0, 1)
+	}
+
+	//check the weekday of time then
+	//we need to add the difference between our desired weekday and actual weekday
+	dayAdded := int(w.Weekday) - int(timeThen.Weekday())
+	if dayAdded < 0 {
+		dayAdded += 7
+	}
+
+	timeThen = timeThen.AddDate(0, 0, dayAdded)
+
+	fmt.Println(timeThen, t)
 
 	return timeThen.Sub(t), nil
 }

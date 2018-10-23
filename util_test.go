@@ -19,3 +19,20 @@ func TestCalculateTimeDiff(t *testing.T) {
 
 	assert.Equal(t, time.Hour*-5, timeDiff)
 }
+
+func TestGetWeekday(t *testing.T) {
+	invalidString := "Monnday"
+	validString1 := "saturday"
+	validString2 := "Tuesday"
+
+	_, err := getWeekday(invalidString)
+	assert.Error(t, err)
+
+	w, err := getWeekday(validString1)
+	assert.NoError(t, err)
+	assert.Equal(t, 6, int(w))
+
+	w, err = getWeekday(validString2)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, int(w))
+}
