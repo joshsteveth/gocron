@@ -25,7 +25,8 @@ type Scheduler interface {
 //CustomInterval
 //runs immediately with a custom interval
 type CustomInterval struct {
-	Interval time.Duration
+	Interval      time.Duration
+	SleepDuration time.Duration
 }
 
 func (ci CustomInterval) GetInterval() time.Duration {
@@ -33,7 +34,7 @@ func (ci CustomInterval) GetInterval() time.Duration {
 }
 
 func (ci CustomInterval) GetSleepDuration(t time.Time) (time.Duration, error) {
-	return time.Second * 0, nil
+	return ci.SleepDuration, nil
 }
 
 //Hourly
@@ -45,10 +46,15 @@ type Hourly struct {
 	Location      *time.Location
 }
 
-func NewHourly(start string, loc *time.Location) (*Hourly, error) {
+func NewHourly(start string, loc ...*time.Location) (*Hourly, error) {
+	location := time.Now().Location()
+	if len(loc) != 0 {
+		location = loc[0]
+	}
+
 	h := Hourly{
 		StartingPoint: start,
-		Location:      loc,
+		Location:      location,
 	}
 
 	if err := h.validate(); err != nil {
@@ -122,10 +128,15 @@ type Daily struct {
 	Location      *time.Location
 }
 
-func NewDaily(start string, loc *time.Location) (*Daily, error) {
+func NewDaily(start string, loc ...*time.Location) (*Daily, error) {
+	location := time.Now().Location()
+	if len(loc) != 0 {
+		location = loc[0]
+	}
+
 	d := Daily{
 		StartingPoint: start,
-		Location:      loc,
+		Location:      location,
 	}
 
 	if err := d.validate(); err != nil {
@@ -194,8 +205,13 @@ type Weekly struct {
 
 //NewWeekly returns new Weekly object
 //start string format is "Monday@1504" (case insensitive)
-func NewWeekly(start string, loc *time.Location) (*Weekly, error) {
-	w := Weekly{StartingPoint: start, Location: loc}
+func NewWeekly(start string, loc ...*time.Location) (*Weekly, error) {
+	location := time.Now().Location()
+	if len(loc) != 0 {
+		location = loc[0]
+	}
+
+	w := Weekly{StartingPoint: start, Location: location}
 
 	if err := w.validate(); err != nil {
 		return nil, err

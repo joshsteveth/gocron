@@ -10,15 +10,17 @@ import (
 
 func TestCustomInterval(t *testing.T) {
 	interval := time.Second * 3
+	sleepDuration := time.Millisecond * 500
 	c := CustomInterval{
-		Interval: interval,
+		Interval:      interval,
+		SleepDuration: sleepDuration,
 	}
 
 	sleepDur, err := c.GetSleepDuration(time.Now())
 	assert.NoError(t, err)
 
 	assert.Equal(t, interval, c.GetInterval())
-	assert.Equal(t, time.Second*0, sleepDur)
+	assert.Equal(t, sleepDuration, sleepDur)
 }
 
 func TestHourly(t *testing.T) {
@@ -33,7 +35,10 @@ func TestHourly(t *testing.T) {
 	_, err = NewHourly(validStartingPoint, nil)
 	assert.Error(t, err)
 
-	h, err := NewHourly(validStartingPoint, loc)
+	h, err := NewHourly(validStartingPoint)
+	assert.NoError(t, err)
+
+	h, err = NewHourly(validStartingPoint, loc)
 	assert.NoError(t, err)
 
 	assert.Equal(t, time.Second*3600, h.GetInterval())
@@ -61,7 +66,10 @@ func TestDaily(t *testing.T) {
 	_, err = NewDaily(validStartingPoint, nil)
 	assert.Error(t, err)
 
-	d, err := NewDaily(validStartingPoint, berlin)
+	d, err := NewDaily(validStartingPoint)
+	assert.NoError(t, err)
+
+	d, err = NewDaily(validStartingPoint, berlin)
 	assert.NoError(t, err)
 
 	assert.Equal(t, time.Hour*24, d.GetInterval())
@@ -112,8 +120,12 @@ func TestWeekly(t *testing.T) {
 	_, err = NewWeekly(correctFormat(validWeek, validStartingPoint), nil)
 	assert.Error(t, err)
 
+	//no location is fine
+	w, err := NewWeekly(correctFormat(validWeek, validStartingPoint))
+	assert.NoError(t, err)
+
 	//correct format valid location
-	w, err := NewWeekly(correctFormat(validWeek, validStartingPoint), berlin)
+	w, err = NewWeekly(correctFormat(validWeek, validStartingPoint), berlin)
 	assert.NoError(t, err)
 
 	//this runs in TZ UTC+7 on Tuesday at 17:50

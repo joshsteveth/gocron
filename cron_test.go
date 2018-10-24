@@ -59,8 +59,11 @@ func TestStop(t *testing.T) {
 	time.Sleep(time.Millisecond * 500)
 	assert.Equal(t, true, cj.IsActive())
 
-	cj.Stop(msg)
+	err = cj.Stop(msg)
+	assert.NoError(t, err)
 
 	time.Sleep(time.Millisecond * 500)
 	assert.Equal(t, false, cj.IsActive())
+
+	assert.Error(t, cj.Stop(msg))
 }

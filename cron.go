@@ -93,7 +93,7 @@ func (c *CronJob) start() {
 }
 
 func (c *CronJob) Stop(msg string) error {
-	if len(c.jobChan) == 0 {
+	if !c.IsActive() {
 		return ErrorAlreadyInactive
 	}
 
