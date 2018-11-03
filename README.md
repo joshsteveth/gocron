@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/joshsteveth/gocron)](https://goreportcard.com/report/github.com/joshsteveth/gocron)
+
 ### Go Cron
 Cronjob like scheduler. With current features:
 - custom interval 
